@@ -64,7 +64,7 @@ def infer_route():
 	if os.environ.get('ASR_ADDR_PORT'):
 		options['asr_addr_port'] = os.environ.get('ASR_ADDR_PORT')
 	else:
-		options['asr_addr_port'] = 'ws://localhost:' + port_dic["cmd_port"]
+		options['asr_addr_port'] = 'ws://localhost:8081'
 	if request.method == 'POST':
 		options = generic_infer_route(request.form, request.files['file'] if 'file' in request.files else None)
 	return render_template('infer.html', **options)

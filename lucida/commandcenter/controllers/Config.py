@@ -1,6 +1,29 @@
 from Service import Service, WorkerService
 from Graph import Graph, Node
+from pymongo import MongoClient
+import os, sys
 from dcm import*
+
+def load_config():
+    mongodb_addr = os.environ.get('MONGO_PORT_27017_TCP_ADDR')
+    if mongodb_addr:
+        db = MongoClient(mongodb_addr, 27017).lucida
+    else:
+        db = MongoClient().lucida
+    service_list = db["service_info"].find()
+    count = service_list.count()
+    for i in range(count):
+        service_obj = service_list[i]
+        acn = service_obj['acronym']
+        port = int(service_obj['port'])
+        input_type = service_obj['input']
+        learn_type = service_obj['learn']
+        if learn_type == 'none':
+            SERVICES[acn] = Service(acn, port, input_type, None)
+        else:
+            SERVICES[acn] = Service(acn, port, input_type, learn_type)
+        CLASSIFIER_DESCRIPTIONS[input_type]['class_' + acn] = Graph([Node(acn)])
+    return 0
 
 # The maximum number of texts or images for each user.
 # This is to prevent the server from over-loading.
@@ -47,6 +70,9 @@ CLASSIFIER_DESCRIPTIONS = {
                      'class_DIG' : Graph([Node('DIG')]),
                      'class_IMM_DCM_QA_WE' : Graph([Node('IMM', [1]), Node('DCM_IMM', [0,2]), Node('QA', [3]), Node('WE')]) }
     }
+    
+load_config()
+
 
 # TODO: Should I have this in its own Config file?
 # Structure used to save the state/context across requests in a session
